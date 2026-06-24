@@ -4,7 +4,7 @@ FROM oven/bun:1 as builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # Install dependencies
 RUN bun install --production
@@ -27,7 +27,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/tsconfig.json ./
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # Expose port
 EXPOSE 3000
