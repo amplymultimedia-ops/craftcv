@@ -1,0 +1,27 @@
+# Root ignores for monorepo publishing
+
+# Environment secrets
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+webapp/.env
+webapp/.env.*
+!webapp/.env.example
+
+# Dependency and build outputs
+backend/node_modules/
+webapp/node_modules/
+backend/dist/
+webapp/dist/
+
+# Local databases and generated clients
+backend/prisma/dev.db
+backend/src/generated/supabase-prisma/
+
+# Large local artifacts
+webapp/public/repo.zip
+
+# Local/editor noise
+.DS_Store
+.vscode/
