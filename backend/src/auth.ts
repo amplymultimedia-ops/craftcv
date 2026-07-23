@@ -12,9 +12,11 @@ export const auth = betterAuth({
     provider: env.SUPABASE_DATABASE_URL ? "postgresql" : "sqlite",
   }),
   trustedOrigins: [
+    env.BACKEND_URL,
     "http://localhost:*",
     "http://127.0.0.1:*",
     "https://*.vercel.app",
+    "https://webapp-roan-phi-58.vercel.app",
     "https://*.dev.vibecode.run",
     "https://*.vibecode.run",
     "https://*.vibecodeapp.com",
