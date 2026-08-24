@@ -14,10 +14,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
-  const callbackURL = new URL(
-    "/dashboard",
-    import.meta.env.VITE_BACKEND_URL || window.location.origin
-  ).toString();
+  const callbackURL = new URL("/dashboard", window.location.origin).toString();
 
   async function handleSignIn() {
     if (!email || !password) return;
