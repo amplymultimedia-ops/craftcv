@@ -12,7 +12,12 @@ const envSchema = z.object({
   SUPABASE_DATABASE_URL: z.string().optional(),
   BACKEND_URL: z.string().default("http://localhost:3000"),
   BETTER_AUTH_SECRET: z.string().default("cv-builder-secret-key-32chars-minimum-2024"),
+  AI_PROVIDER: z.enum(["openai", "ollama"]).optional().default("ollama"),
   OPENAI_API_KEY: z.string().default(""),
+  OPENAI_BASE_URL: z.string().optional().default("https://api.openai.com/v1"),
+  OPENAI_MODEL: z.string().optional().default("gpt-4o-mini"),
+  OLLAMA_BASE_URL: z.string().optional().default("http://localhost:11434/v1"),
+  OLLAMA_MODEL: z.string().optional().default("gemma3:4b"),
   RESEND_API_KEY: z.string(),
 });
 

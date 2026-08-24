@@ -3,6 +3,7 @@ import { prisma } from "../db";
 import { requireAuth } from "../middleware/auth";
 import type { HonoVariables } from "../context";
 import { ParseJobAdSchema, type ParsedJobAd } from "../types";
+import { getAiConfig } from "../ai";
 
 const jobAdRouter = new Hono<{ Variables: HonoVariables }>();
 
@@ -63,13 +64,16 @@ async function fetchUrlText(url: string): Promise<string> {
 
 async function parseJobAdWithAI(
   rawText: string,
-  openaiKey: string
+  aiConfig: ReturnType<typeof getAiConfig>
 ): Promise<ParsedJobAd> {
   const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey: openaiKey });
+  const openai = new OpenAI({
+    apiKey: aiConfig.apiKey,
+    baseURL: aiConfig.baseUrl,
+  });
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: aiConfig.model,
     messages: [
       {
         role: "system",
@@ -140,7 +144,8 @@ jobAdRouter.post("/parse", async (c) => {
   }
 
   const { env } = await import("../env");
-  if (!env.OPENAI_API_KEY) {
+  const aiConfig = getAiConfig(env);
+  if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
     return c.json(
       {
         error: {
@@ -185,7 +190,7 @@ jobAdRouter.post("/parse", async (c) => {
   }
 
   try {
-    const parsedData = await parseJobAdWithAI(rawText, env.OPENAI_API_KEY);
+    const parsedData = await parseJobAdWithAI(rawText, aiConfig);
 
     // Save to database
     await prisma.jobAd.create({

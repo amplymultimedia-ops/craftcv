@@ -11,6 +11,7 @@ import {
   type ResumeContent,
   type ToneOfVoice,
 } from "../types";
+import { getAiConfig } from "../ai";
 
 const generateRouter = new Hono<{ Variables: HonoVariables }>();
 
@@ -37,15 +38,18 @@ async function generateTailoredResume(
   baseContent: ResumeContent,
   jobAdText: string,
   tone: ToneOfVoice,
-  openaiKey: string
+  aiConfig: ReturnType<typeof getAiConfig>
 ): Promise<ResumeContent> {
   const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey: openaiKey });
+  const openai = new OpenAI({
+    apiKey: aiConfig.apiKey,
+    baseURL: aiConfig.baseUrl,
+  });
 
   const toneInstruction = getToneSystemPrompt(tone);
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: aiConfig.model,
     messages: [
       {
         role: "system",
@@ -106,15 +110,18 @@ async function generateCoverLetterContent(
   resumeContent: ResumeContent,
   jobAdText: string,
   tone: ToneOfVoice,
-  openaiKey: string
+  aiConfig: ReturnType<typeof getAiConfig>
 ): Promise<string> {
   const { default: OpenAI } = await import("openai");
-  const openai = new OpenAI({ apiKey: openaiKey });
+  const openai = new OpenAI({
+    apiKey: aiConfig.apiKey,
+    baseURL: aiConfig.baseUrl,
+  });
 
   const toneInstruction = getToneSystemPrompt(tone);
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: aiConfig.model,
     messages: [
       {
         role: "system",
@@ -171,7 +178,8 @@ generateRouter.post("/resume", async (c) => {
   const { resumeId, jobAdText, toneOfVoice } = parsed.data;
 
   const { env } = await import("../env");
-  if (!env.OPENAI_API_KEY) {
+  const aiConfig = getAiConfig(env);
+  if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
     return c.json(
       {
         error: {
@@ -210,7 +218,7 @@ generateRouter.post("/resume", async (c) => {
       baseContent,
       jobAdText,
       toneOfVoice,
-      env.OPENAI_API_KEY
+      aiConfig
     );
 
     // Update the resume with tailored content
@@ -264,7 +272,8 @@ generateRouter.post("/cover-letter", async (c) => {
   const { resumeId, jobAdText, toneOfVoice, coverLetterId } = parsed.data;
 
   const { env } = await import("../env");
-  if (!env.OPENAI_API_KEY) {
+  const aiConfig = getAiConfig(env);
+  if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
     return c.json(
       {
         error: {
@@ -295,7 +304,7 @@ generateRouter.post("/cover-letter", async (c) => {
       resumeContent,
       jobAdText,
       toneOfVoice,
-      env.OPENAI_API_KEY
+      aiConfig
     );
 
     // Determine title from job ad
@@ -369,14 +378,19 @@ generateRouter.post(
   zValidator("json", EditTextSchema),
   async (c) => {
     const { text, instruction } = c.req.valid("json" as never) as EditText;
-    const openaiKey = process.env.OPENAI_API_KEY;
-    if (!openaiKey) return c.json({ error: { message: "OpenAI API key not configured", code: "NO_API_KEY" } }, 500);
+    const aiConfig = getAiConfig(process.env as any);
+    if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
+      return c.json({ error: { message: "OpenAI API key not configured", code: "NO_API_KEY" } }, 500);
+    }
 
     const { default: OpenAI } = await import("openai");
-    const openai = new OpenAI({ apiKey: openaiKey });
+    const openai = new OpenAI({
+      apiKey: aiConfig.apiKey,
+      baseURL: aiConfig.baseUrl,
+    });
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: aiConfig.model,
       messages: [
         {
           role: "system",

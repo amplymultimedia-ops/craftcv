@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { prisma } from "../db";
 import { requireAuth } from "../middleware/auth";
 import type { HonoVariables } from "../context";
+import { getAiConfig } from "../ai";
 import { UpdateProfileSchema, type ResumeContent } from "../types";
 
 const profileRouter = new Hono<{ Variables: HonoVariables }>();
@@ -146,7 +147,8 @@ profileRouter.post("/parse-document", async (c) => {
   }
 
   const { env } = await import("../env");
-  if (!env.OPENAI_API_KEY) {
+  const aiConfig = getAiConfig(env);
+  if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
     return c.json(
       {
         error: {
@@ -160,10 +162,13 @@ profileRouter.post("/parse-document", async (c) => {
 
   try {
     const { default: OpenAI } = await import("openai");
-    const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+    const openai = new OpenAI({
+      apiKey: aiConfig.apiKey,
+      baseURL: aiConfig.baseUrl,
+    });
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: aiConfig.model,
       messages: [
         {
           role: "system",
