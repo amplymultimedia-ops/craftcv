@@ -14,6 +14,11 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const callbackURL = new URL(
+    "/dashboard",
+    import.meta.env.VITE_BACKEND_URL || window.location.origin
+  ).toString();
+
   async function handleSignUp() {
     if (!name || !email || !password) return;
     if (password.length < 8) {
@@ -26,7 +31,7 @@ export default function RegisterPage() {
         email,
         password,
         name,
-        callbackURL: "/dashboard",
+        callbackURL,
       });
       if (error) {
         toast.error(error.message ?? "Could not create account");

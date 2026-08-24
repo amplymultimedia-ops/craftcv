@@ -14,6 +14,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
+  const callbackURL = new URL(
+    "/dashboard",
+    import.meta.env.VITE_BACKEND_URL || window.location.origin
+  ).toString();
+
   async function handleSignIn() {
     if (!email || !password) return;
     setLoading(true);
@@ -21,7 +26,7 @@ export default function LoginPage() {
       const { data, error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/dashboard",
+        callbackURL,
       });
       if (error) {
         toast.error("Invalid email or password");

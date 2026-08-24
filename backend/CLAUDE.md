@@ -58,3 +58,24 @@
   The app supports local SQLite by default and Supabase Postgres when DATABASE_URL is set to a Postgres connection string.
   If the user needs to persist data or have user accounts, use the database-auth skill and then update this file to reflect the changes.
 </database>
+
+<deployment_workflow>
+  Use a local-first, low-friction release flow:
+  1. Validate backend changes locally (typecheck, health, and route checks).
+  2. Deploy backend changes to the active platform (Railway, Supabase-connected host, or current production host).
+  3. Verify live behavior from the frontend domain that uses this backend.
+
+  <when_to_release>
+    For bigger backend/auth/data changes, deploy when it is safe and reasonable to update production.
+  </when_to_release>
+
+  <required_live_checks>
+    - /health responds correctly.
+    - Auth flows work from production frontend origin.
+    - Core API routes return expected contracts.
+  </required_live_checks>
+
+  <done_gate>
+    Do not mark done until post-deploy live checks pass.
+  </done_gate>
+</deployment_workflow>

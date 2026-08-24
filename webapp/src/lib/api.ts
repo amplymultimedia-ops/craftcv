@@ -1,6 +1,9 @@
 import { tokenStore } from "@/lib/session";
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "";
+const useRelativeApi =
+  typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app");
+
+const API_BASE_URL = useRelativeApi ? "" : import.meta.env.VITE_BACKEND_URL || "";
 
 class ApiError extends Error {
   constructor(message: string, public status: number, public data?: unknown) {
