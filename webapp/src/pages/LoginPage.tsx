@@ -6,29 +6,52 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Mail, ArrowRight } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { tokenStore } from "@/lib/session";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sentTo, setSentTo] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
 
-  const callbackURL = new URL("/auth/verify", window.location.origin).toString();
-
-  async function handleSendLink() {
+  async function handleSendCode() {
     if (!email) return;
     setLoading(true);
     try {
-      const { error } = await authClient.signIn.magicLink({
-        email,
-        callbackURL,
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: email.trim(),
+        type: "sign-in",
       });
       if (error) {
-        toast.error(error.message ?? "Unable to send sign-in link");
+        toast.error(error.message ?? "Unable to send verification code");
         return;
       }
-      setSentTo(email);
+      setCode("");
+      setCodeSent(true);
+      toast.success("Verification code sent");
     } catch {
-      toast.error("Unable to send sign-in link. Please try again.");
+      toast.error("Unable to send verification code. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyCode() {
+    if (!email || !/^\d{6}$/.test(code)) return;
+    setLoading(true);
+    try {
+      const { data, error } = await authClient.signIn.emailOtp({
+        email: email.trim(),
+        otp: code,
+      });
+      if (error || !data?.token) {
+        toast.error(error?.message ?? "The code is invalid or expired");
+        return;
+      }
+      tokenStore.set(data.token);
+      window.location.href = "/dashboard";
+    } catch {
+      toast.error("Unable to verify code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -59,18 +82,49 @@ export default function LoginPage() {
               <Mail className="w-5 h-5 text-primary" />
             </div>
             <h1 className="font-display text-3xl font-semibold mb-2">Sign in</h1>
-            <p className="text-muted-foreground text-sm">We'll email you a secure link to sign in.</p>
+            <p className="text-muted-foreground text-sm">We'll email you a one-time verification code.</p>
           </div>
 
           <div className="space-y-4">
-            {sentTo ? (
+            {codeSent ? (
               <div className="rounded-md border border-border bg-card p-4 text-sm" role="status">
                 <p className="font-medium">Check your inbox</p>
-                <p className="mt-1 text-muted-foreground">We sent a sign-in link to {sentTo}.</p>
+                <p className="mt-1 text-muted-foreground">Enter the six-digit code sent to {email}.</p>
+                <Label htmlFor="verification-code" className="mt-4 block text-left text-sm font-medium">Verification code</Label>
+                <Input
+                  id="verification-code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onKeyDown={(event) => event.key === "Enter" && handleVerifyCode()}
+                  className="mt-1.5 text-center text-lg tracking-[0.35em]"
+                  autoFocus
+                />
+                <Button
+                  onClick={handleVerifyCode}
+                  disabled={loading || code.length !== 6}
+                  className="mt-3 w-full"
+                >
+                  {loading ? "Verifying…" : "Verify and sign in"}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
                 <button
                   type="button"
-                  onClick={() => setSentTo("")}
-                  className="mt-3 text-foreground underline underline-offset-2"
+                  onClick={handleSendCode}
+                  disabled={loading}
+                  className="mt-3 w-full text-center text-sm text-muted-foreground underline underline-offset-2 disabled:opacity-50"
+                >
+                  Send a new code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCodeSent(false); setCode(""); }}
+                  className="mt-2 w-full text-center text-sm text-foreground underline underline-offset-2"
                 >
                   Use a different email
                 </button>
@@ -87,7 +141,7 @@ export default function LoginPage() {
                       placeholder="you@example.com"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      onKeyDown={e => e.key === "Enter" && handleSendLink()}
+                      onKeyDown={e => e.key === "Enter" && handleSendCode()}
                       className="pl-9"
                       autoComplete="email"
                       autoFocus
@@ -95,8 +149,8 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <Button onClick={handleSendLink} disabled={loading || !email} className="w-full">
-                  {loading ? "Sending link…" : "Email me a sign-in link"}
+                <Button onClick={handleSendCode} disabled={loading || !email} className="w-full">
+                  {loading ? "Sending code…" : "Email me a verification code"}
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </>

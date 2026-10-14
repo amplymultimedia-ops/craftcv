@@ -309,7 +309,7 @@
       <aside class="notice" aria-label="Deployment mismatch">
         <div>
           <strong>Production release is blocked by the backend host.</strong>
-            <p>The live <code>craftcv-eight.vercel.app/login</code> screen still asks for email and password, while current workspace source uses email magic links. Its same-origin auth check returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>), and the existing backend hostname found in the separate protected Vercel project did not resolve. The public <code>craftcv</code> Vercel project has no environment variables. Render's Blueprint flow reports a missing repository URL and HTTP 429; its standard Git-backed form also failed to advance, so no backend service or environment values were submitted. Before retrying deployment, rotate provider credentials because the local environment import dialog echoed values in a browser snapshot. The unrelated protected <code>webapp</code> production alias was restored to its previous deployment; the public CraftCV project was not changed.</p>
+            <p>The live <code>craftcv-eight.vercel.app/login</code> screen still asks for email and password, while current workspace source uses six-digit email verification codes. Its same-origin auth check returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>), and the existing backend hostname found in the separate protected Vercel project did not resolve. The public <code>craftcv</code> Vercel project has no environment variables. Render's Blueprint flow reports a missing repository URL and HTTP 429; its standard Git-backed form also failed to advance, so no backend service or environment values were submitted. Before retrying deployment, rotate provider credentials because the local environment import dialog echoed values in a browser snapshot. The unrelated protected <code>webapp</code> production alias was restored to its previous deployment; the public CraftCV project was not changed.</p>
         </div>
       </aside>
 
@@ -361,8 +361,8 @@
               </tr>
               <tr>
                 <td>Sign-in and registration</td>
-                <td>Workspace login and registration both request an email magic link. A confirmation state follows a successful request. The verification page consumes a one-time token, stores the bearer session, and routes to the dashboard. New addresses can create an account after verification.</td>
-                <td><span class="tag source">SOURCE-IMPLEMENTED</span> <span class="tag mismatch">DEPLOYMENT MISMATCH</span><span class="source-note">Live login is still password-based and live auth API currently returns 502. <code>LoginPage.tsx</code>, <code>RegisterPage.tsx</code>, <code>MagicLinkVerifyPage.tsx</code>, <code>backend/src/auth.ts</code></span></td>
+                <td>Workspace login and registration request a six-digit email code. A visitor enters the code in the same screen; valid codes expire after 10 minutes, allow three attempts, and sign in with a bearer session. An unknown email creates a verified account after code entry.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span> <span class="tag mismatch">DEPLOYMENT MISMATCH</span><span class="source-note">Live login is still password-based and live auth API currently returns 502. <code>LoginPage.tsx</code>, <code>RegisterPage.tsx</code>, <code>backend/src/auth.ts</code></span></td>
               </tr>
               <tr>
                 <td>Dashboard</td>
@@ -406,7 +406,7 @@
               </tr>
               <tr>
                 <td>Settings and account</td>
-                <td>Displays account name and email, links to billing, and signs out by clearing the local bearer token and calling Better Auth sign-out. Account deletion now requires typing <code>DELETE</code>, removes the current user and cascading product records, clears pending magic links, then signs out.</td>
+                <td>Displays account name and email, links to billing, and signs out by clearing the local bearer token and calling Better Auth sign-out. Account deletion now requires typing <code>DELETE</code>, removes the current user and cascading product records, clears pending email OTPs, then signs out.</td>
                 <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>SettingsPage.tsx</code>, <code>backend/src/routes/account.ts</code></span></td>
               </tr>
               <tr>
@@ -443,9 +443,9 @@
             <summary>Public site and account access</summary>
             <ul>
               <li><strong>AC-01:</strong> Landing navigation moves to the Features and Pricing sections; all primary calls to action route to sign-in.</li>
-              <li><strong>AC-02:</strong> A visitor can submit an email from sign-in or registration and sees a confirmation naming the recipient when the request succeeds.</li>
-              <li><strong>AC-03:</strong> A valid, unused magic link verifies the email, creates a new account when needed, stores a bearer token, and opens the dashboard.</li>
-              <li><strong>AC-04:</strong> Missing, invalid, or expired verification tokens show an error and a route back to sign-in; links expire after 10 minutes.</li>
+              <li><strong>AC-02:</strong> A visitor can request a six-digit code by email and sees a confirmation naming the recipient when the request succeeds.</li>
+              <li><strong>AC-03:</strong> Entering a valid code verifies the email, creates a new account when needed, stores a bearer token, and opens the dashboard.</li>
+              <li><strong>AC-04:</strong> Invalid or expired codes show an error; codes expire after 10 minutes, allow three attempts, and can be resent subject to rate limits.</li>
               <li><strong>AC-05:</strong> Dashboard, builder, billing, and settings redirect unauthenticated users to sign-in; sign-out clears the local token.</li>
             </ul>
           </details>
@@ -488,7 +488,7 @@
               <li><strong>AC-20:</strong> Selecting a billing plan records an active subscription and displays resulting status/date information without processing a payment.</li>
               <li><strong>AC-21:</strong> Cancel changes the subscription status; fetching status updates expired records. No app feature is gated by plan entitlement.</li>
               <li><strong>AC-22:</strong> Settings displays the authenticated account name/email and provides billing navigation and sign-out.</li>
-              <li><strong>AC-23:</strong> Account deletion requires exact typed confirmation, deletes the current account and related product rows in a transaction, removes outstanding magic links, clears the local bearer token, and redirects to sign-in.</li>
+              <li><strong>AC-23:</strong> Account deletion requires exact typed confirmation, deletes the current account and related product rows in a transaction, removes outstanding email OTP records, clears the local bearer token, and redirects to sign-in.</li>
             </ul>
           </details>
 
@@ -512,15 +512,15 @@
           <p>These are the clearest differences between advertised behavior and the current implementation.</p>
         </div>
         <ul class="gap-list">
-          <li><strong>Auth deployment:</strong> Live login remains email/password; workspace source uses magic links.</li>
+          <li><strong>Auth deployment:</strong> Live login remains email/password; workspace source now uses six-digit email verification codes.</li>
           <li><strong>Trial terms:</strong> Landing says 7 days; backend creates a 14-day trial. Payment is not connected.</li>
           <li><strong>Checkout:</strong> Pricing CTAs navigate to login and do not create a checkout session.</li>
           <li><strong>Entitlements:</strong> Subscription status does not restrict resume limits or paid functionality.</li>
-          <li><strong>Backend deploy:</strong> Account deletion and magic-link changes are committed on branch <code>release-candidate-local-ai</code>; a Render Docker/Blueprint scaffold is included. Render lists the GitHub repository but its Blueprint flow reports a missing repository URL and 429, so no service was created.</li>
+          <li><strong>Backend deploy:</strong> Account deletion and email-code changes are committed on branch <code>release-candidate-local-ai</code>; a Render Docker/Blueprint scaffold is included. Render lists the GitHub repository but its Blueprint flow reports a missing repository URL and 429, so no service was created.</li>
           <li><strong>Credential rotation:</strong> Rotate the OpenAI key, Supabase database password, Resend key, and Better Auth secret before retrying. The Render import dialog echoed local environment values in its browser snapshot; the form was abandoned without submitting or deploying them. Never paste replacement secrets into chat.</li>
           <li><strong>Production API:</strong> The live auth session path returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>); the currently referenced backend hostname also fails DNS resolution.</li>
           <li><strong>Public project configuration:</strong> The public <code>craftcv</code> Vercel project has no environment variables. Configure the correct backend URL there only after a healthy backend host is available.</li>
-          <li><strong>Auth cutover:</strong> The live site still shows password login; backend and public CraftCV frontend must be released together and tested with a real email link. The protected <code>webapp</code> project remains on its previous production deployment.</li>
+          <li><strong>Auth cutover:</strong> The live site still shows password login; backend and public CraftCV frontend must be released together and tested with a real emailed code. The protected <code>webapp</code> project remains on its previous production deployment.</li>
           <li><strong>Payment work deferred:</strong> Real checkout, payment-provider integration, subscription entitlements, trial/pricing copy alignment, and renewal/cancellation payment handling remain intentionally untouched until a payment account is configured.</li>
           <li><strong>PDF verification:</strong> Print CSS now permits page flow, but a long-resume PDF and cover-letter page-break check still requires a live authenticated session.</li>
           <li><strong>Legal review:</strong> Privacy and Terms routes are implemented with behavior-grounded copy; an owner/legal review is still advisable before treating them as final legal advice.</li>

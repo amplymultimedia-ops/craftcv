@@ -1,9 +1,9 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { bearer, magicLink } from "better-auth/plugins";
+import { bearer, emailOTP } from "better-auth/plugins";
 import { prisma } from "./db";
 import { env } from "./env";
-import { sendMagicLinkEmail } from "./mailer";
+import { sendVerificationCodeEmail } from "./mailer";
 
 export const auth = betterAuth({
   baseURL: env.BACKEND_URL,
@@ -29,18 +29,12 @@ export const auth = betterAuth({
   },
   plugins: [
     bearer(),
-    magicLink({
+    emailOTP({
       expiresIn: 10 * 60,
-      sendMagicLink: async ({ email, token, url }) => {
-        const verificationURL = new URL(url);
-        const callbackURL = verificationURL.searchParams.get("callbackURL");
-        if (!callbackURL) {
-          throw new Error("Magic link is missing its verification callback URL");
-        }
-
-        const signInURL = new URL(callbackURL);
-        signInURL.searchParams.set("token", token);
-        await sendMagicLinkEmail(email, signInURL.toString());
+      allowedAttempts: 3,
+      storeOTP: "hashed",
+      sendVerificationOTP: async ({ email, otp, type }) => {
+        await sendVerificationCodeEmail(email, otp, type);
       },
     }),
   ],

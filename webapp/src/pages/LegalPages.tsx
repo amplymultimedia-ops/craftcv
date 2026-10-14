@@ -47,13 +47,13 @@ export function PrivacyPage() {
       title: "AI and email services",
       paragraphs: [
         "When you request document parsing, job-ad analysis, resume tailoring, cover-letter writing, or text rewriting, the relevant content is sent to the AI provider configured for CraftCV. That provider may be OpenAI or an Ollama service. The provider's own handling rules apply to data it receives.",
-        "CraftCV uses Resend to deliver account verification emails. Your email address and the sign-in link are provided to that email-delivery service.",
+        "CraftCV uses Resend to deliver account verification emails. Your email address and one-time verification code are provided to that email-delivery service.",
       ],
     },
     {
       title: "Account deletion",
       paragraphs: [
-        "You can request deletion from Settings. A confirmed deletion removes your account and its associated resumes, cover letters, imported profile, job ads, subscription record, and sessions from the CraftCV database. Outstanding sign-in links expire after ten minutes.",
+        "You can request deletion from Settings. A confirmed deletion removes your account and its associated resumes, cover letters, imported profile, job ads, subscription record, and sessions from the CraftCV database. One-time verification codes expire after ten minutes.",
       ],
     },
     {

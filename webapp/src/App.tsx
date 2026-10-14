@@ -8,7 +8,6 @@ import { fetchSession } from "@/lib/session";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import MagicLinkVerifyPage from "./pages/MagicLinkVerifyPage";
 import DashboardPage from "./pages/DashboardPage";
 import BuilderPage from "./pages/BuilderPage";
 import CoverLetterPage from "./pages/CoverLetterPage";
@@ -53,7 +52,6 @@ const App = () => (
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/auth/verify" element={<MagicLinkVerifyPage />} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/builder/:id" element={<ProtectedRoute><BuilderPage /></ProtectedRoute>} />
           <Route path="/cover-letters/:id" element={<ProtectedRoute><CoverLetterPage /></ProtectedRoute>} />

@@ -22,7 +22,12 @@ accountRouter.delete("/", async (c) => {
   try {
     await prisma.$transaction(async (transaction) => {
       await transaction.verification.deleteMany({
-        where: { value: { contains: user.email } },
+        where: {
+          OR: [
+            { identifier: { contains: user.email } },
+            { value: { contains: user.email } },
+          ],
+        },
       });
       await transaction.user.delete({ where: { id: user.id } });
     });
