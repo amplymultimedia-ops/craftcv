@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { ResumeContent } from "@/lib/types";
-import { tokenStore } from "@/lib/session";
+import { api } from "@/lib/api";
 import { Loader2, ChevronDown, ChevronUp, Upload } from "lucide-react";
 
 interface LinkedInImportProps {
@@ -16,8 +16,9 @@ export function LinkedInImport({ onImport }: LinkedInImportProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
-    if (!file.name.endsWith(".pdf")) {
-      setError("Please upload a PDF file.");
+    const extension = file.name.split(".").pop()?.toLowerCase();
+    if (!extension || !["pdf", "docx", "txt"].includes(extension)) {
+      setError("Choose a PDF, DOCX, or TXT file.");
       return;
     }
     setLoading(true);
@@ -26,11 +27,8 @@ export function LinkedInImport({ onImport }: LinkedInImportProps) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const token = tokenStore.get();
-      const res = await fetch("/api/profile/parse-document", {
+      const res = await api.raw("/api/profile/parse-document", {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        credentials: "include",
         body: formData,
       });
       const json = await res.json();
@@ -93,10 +91,10 @@ export function LinkedInImport({ onImport }: LinkedInImportProps) {
             fontFamily: "Arial, sans-serif",
           }}
         >
-          in
+          CV
         </div>
         <span className="text-xs font-medium text-blue-900 flex-1">
-          {success ? "Profile imported!" : "Import from LinkedIn PDF"}
+          {success ? "Profile imported!" : "Import resume file"}
         </span>
         {success ? null : open ? (
           <ChevronUp className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
@@ -109,10 +107,9 @@ export function LinkedInImport({ onImport }: LinkedInImportProps) {
       {open ? (
         <div className="px-3 pb-3 border-t border-blue-100 bg-white/70">
           <ol className="text-xs text-blue-800/80 mt-2.5 mb-3 leading-relaxed space-y-1 list-decimal list-inside">
-            <li>Navigate to the profile you want to save.</li>
-            <li>Below the profile photo and headline, click <strong>More</strong> or <strong>Resources</strong>.</li>
-            <li>Select <strong>Save to PDF</strong> from the dropdown.</li>
-            <li>Upload the downloaded PDF file here.</li>
+            <li>Choose a resume or profile file from your device.</li>
+            <li>Supported formats are PDF, DOCX, and plain text (TXT).</li>
+            <li>The extracted information will be saved as your baseline profile and added to this resume.</li>
           </ol>
 
           {/* Drop zone */}
@@ -138,9 +135,9 @@ export function LinkedInImport({ onImport }: LinkedInImportProps) {
               <>
                 <Upload className="w-4 h-4 text-blue-400" />
                 <span className="text-xs text-blue-700 font-medium">
-                  Click or drag PDF here
+                  Click or drag a file here
                 </span>
-                <span className="text-[10px] text-blue-400">Accepts .pdf only</span>
+                <span className="text-[10px] text-blue-400">PDF, DOCX, or TXT</span>
               </>
             )}
           </div>
@@ -148,7 +145,7 @@ export function LinkedInImport({ onImport }: LinkedInImportProps) {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf"
+            accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
             className="hidden"
             onChange={handleInputChange}
           />

@@ -179,6 +179,7 @@ export default function DashboardPage() {
                   <CoverLetterCard
                     key={cl.id}
                     coverLetter={cl}
+                    onEdit={() => navigate(`/cover-letters/${cl.id}`)}
                     onDelete={() => deleteCLMutation.mutate(cl.id)}
                   />
                 ))}

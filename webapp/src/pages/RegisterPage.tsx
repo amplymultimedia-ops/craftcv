@@ -4,40 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { UserPlus, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { UserPlus, Mail, ArrowRight } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { tokenStore } from "@/lib/session";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sentTo, setSentTo] = useState("");
 
-  const callbackURL = new URL("/dashboard", window.location.origin).toString();
+  const callbackURL = new URL("/auth/verify", window.location.origin).toString();
 
-  async function handleSignUp() {
-    if (!name || !email || !password) return;
-    if (password.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
+  async function handleSendLink() {
+    if (!email) return;
     setLoading(true);
     try {
-      const { data, error } = await authClient.signUp.email({
+      const { error } = await authClient.signIn.magicLink({
         email,
-        password,
-        name,
         callbackURL,
       });
       if (error) {
-        toast.error(error.message ?? "Could not create account");
+        toast.error(error.message ?? "Unable to send verification link");
         return;
       }
-      if (data?.token) tokenStore.set(data.token);
-      window.location.href = "/dashboard";
+      setSentTo(email);
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Unable to send verification link. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -68,67 +59,48 @@ export default function RegisterPage() {
               <UserPlus className="w-5 h-5 text-primary" />
             </div>
             <h1 className="font-display text-3xl font-semibold mb-2">Create account</h1>
-            <p className="text-muted-foreground text-sm">Get started with CraftCV today.</p>
+            <p className="text-muted-foreground text-sm">Enter your email to verify it and create your account.</p>
           </div>
 
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="name" className="text-sm font-medium">Full name</Label>
-              <div className="relative mt-1.5">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Jane Smith"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSignUp()}
-                  className="pl-9"
-                  autoFocus
-                />
+            {sentTo ? (
+              <div className="rounded-md border border-border bg-card p-4 text-sm" role="status">
+                <p className="font-medium">Verify your email</p>
+                <p className="mt-1 text-muted-foreground">We sent an account link to {sentTo}.</p>
+                <button
+                  type="button"
+                  onClick={() => setSentTo("")}
+                  className="mt-3 text-foreground underline underline-offset-2"
+                >
+                  Use a different email
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                  <div className="relative mt-1.5">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleSendLink()}
+                      className="pl-9"
+                      autoComplete="email"
+                      autoFocus
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
-              <div className="relative mt-1.5">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSignUp()}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-              <div className="relative mt-1.5">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Min. 8 characters"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSignUp()}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSignUp}
-              disabled={loading || !name || !email || !password}
-              className="w-full"
-            >
-              {loading ? "Creating account…" : "Create account"}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+                <Button onClick={handleSendLink} disabled={loading || !email} className="w-full">
+                  {loading ? "Sending link…" : "Email me a verification link"}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
 
           <p className="text-center text-xs text-muted-foreground mt-8">

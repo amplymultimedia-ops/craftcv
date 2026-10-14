@@ -22,7 +22,15 @@ Notes:
 
 This app frontend calls backend APIs. Deploy backend first so frontend has a live API URL.
 
-Recommended platforms: Railway, Render, Fly.io, or another Bun/Node host.
+The repository includes a Render Blueprint (`render.yaml`) and Docker build for the Bun backend. The container generates both Prisma clients in Linux and does not run a schema push at startup.
+
+1. In Render, create a Blueprint Instance from this repository and select `render.yaml`.
+2. Set the prompted secrets: `SUPABASE_DATABASE_URL`, `OPENAI_API_KEY`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` using a sender verified by Resend.
+3. Render generates a new `BETTER_AUTH_SECRET`. Do not copy the short legacy secret from local environment files.
+4. After the service is created, copy its public HTTPS URL into the `BACKEND_URL` environment variable and redeploy.
+5. Verify `/health` returns `{"status":"ok"}` before deploying the frontend.
+
+Do not run `backend/scripts/start` in production: it runs `prisma db push --accept-data-loss`. The Render image generates clients only and does not mutate the production schema.
 
 Backend required env vars:
 - `SUPABASE_DATABASE_URL`
@@ -43,6 +51,7 @@ After deploy, verify:
 5. Output directory: `dist`
 6. Add env var in Vercel project:
    - `VITE_BACKEND_URL=https://<your-backend-domain>`
+   - Set it on the public `craftcv` Vercel project, not the separate protected `webapp` project.
 7. Deploy.
 
 ## 4) Make auth work on Vercel domain

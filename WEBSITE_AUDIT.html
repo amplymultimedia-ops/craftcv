@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f5">
+    <title>CraftCV | Product Audit</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #172321;
+        --muted: #5d6b67;
+        --line: #d7dfdc;
+        --paper: #ffffff;
+        --canvas: #f4f6f5;
+        --green: #176b59;
+        --green-soft: #e5f2ed;
+        --orange: #a34b20;
+        --orange-soft: #fff0e7;
+        --blue: #315b85;
+        --blue-soft: #eaf1f8;
+        --red: #a23a3a;
+        --red-soft: #faeaea;
+        --shadow: 0 14px 44px rgba(23, 35, 33, 0.07);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.55;
+      }
+
+      a { color: var(--green); }
+
+      .masthead {
+        padding: 34px 24px 30px;
+        background: #17352f;
+        color: #f2f7f4;
+        border-bottom: 5px solid #9bc8aa;
+      }
+
+      .masthead-inner, main, footer {
+        width: min(1120px, 100% - 40px);
+        margin-inline: auto;
+      }
+
+      .eyebrow, .section-kicker {
+        margin: 0 0 8px;
+        color: #acd4bd;
+        font-size: 0.73rem;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1, h2, h3, p { margin-top: 0; }
+
+      h1 {
+        max-width: 760px;
+        margin-bottom: 12px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(2.25rem, 5vw, 4rem);
+        font-weight: 500;
+        line-height: 1.03;
+      }
+
+      .lede {
+        max-width: 760px;
+        margin-bottom: 22px;
+        color: #d4e2dc;
+        font-size: 1.05rem;
+      }
+
+      .audit-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+
+      .meta-chip {
+        padding: 5px 9px;
+        border: 1px solid rgba(225, 241, 232, 0.28);
+        border-radius: 4px;
+        color: #e7f0eb;
+        font-size: 0.78rem;
+      }
+
+      main { padding-block: 28px 56px; }
+
+      .notice {
+        display: grid;
+        grid-template-columns: 10px 1fr;
+        gap: 14px;
+        margin-bottom: 22px;
+        padding: 18px 20px;
+        border: 1px solid #e8bd9f;
+        border-radius: 6px;
+        background: #fff8f3;
+      }
+
+      .notice::before {
+        content: "";
+        width: 10px;
+        height: 100%;
+        min-height: 46px;
+        border-radius: 2px;
+        background: #bf6a36;
+      }
+
+      .notice strong { display: block; margin-bottom: 3px; }
+      .notice p { margin: 0; color: #674631; }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 34px;
+      }
+
+      .summary-card {
+        min-height: 128px;
+        padding: 17px 18px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+      }
+
+      .summary-card .label {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 750;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .summary-card strong {
+        display: block;
+        margin-bottom: 4px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      .summary-card p { margin: 0; color: var(--muted); font-size: 0.86rem; }
+
+      .section-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 38px 0 14px;
+        padding-bottom: 11px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 1.85rem;
+        font-weight: 500;
+        line-height: 1.15;
+      }
+
+      .section-heading p { max-width: 530px; margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+      .legend { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 18px; }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 23px;
+        padding: 2px 8px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        font-size: 0.69rem;
+        font-weight: 750;
+        letter-spacing: 0.035em;
+        white-space: nowrap;
+      }
+
+      .tag.source { color: #155340; background: var(--green-soft); border-color: #bad9cc; }
+      .tag.live { color: #244d76; background: var(--blue-soft); border-color: #c7d8e8; }
+      .tag.mock { color: #8b3e1b; background: var(--orange-soft); border-color: #ecc5aa; }
+      .tag.placeholder { color: #8e3030; background: var(--red-soft); border-color: #e8baba; }
+      .tag.mismatch { color: #772929; background: #f7e3d8; border-color: #e4b69d; }
+
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+      }
+
+      table { width: 100%; border-collapse: collapse; text-align: left; }
+      th, td { padding: 14px 15px; vertical-align: top; border-bottom: 1px solid #e6ebe9; }
+      th { background: #eaf0ed; color: #344640; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+      td { font-size: 0.87rem; }
+      tbody tr:last-child td { border-bottom: 0; }
+      td:first-child { width: 18%; min-width: 155px; font-weight: 700; }
+      td:nth-child(2) { width: 58%; }
+      td:last-child { width: 24%; min-width: 185px; }
+
+      .source-note { display: block; margin-top: 7px; color: #75827e; font-size: 0.74rem; font-weight: 450; }
+      code { color: #38534a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.76rem; overflow-wrap: anywhere; }
+
+      .criteria-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      details {
+        align-self: start;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+      }
+
+      summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 15px 17px;
+        cursor: pointer;
+        font-weight: 750;
+        list-style: none;
+      }
+
+      summary::-webkit-details-marker { display: none; }
+      summary::after { content: "+"; color: var(--green); font-size: 1.25rem; font-weight: 500; }
+      details[open] summary::after { content: "-"; }
+      details ul { margin: 0; padding: 0 20px 18px 39px; }
+      details li { margin: 7px 0; color: #43514c; font-size: 0.87rem; }
+      details li::marker { color: var(--green); }
+
+      .gap-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 20px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .gap-list li { padding: 13px 14px; border-left: 3px solid #c47446; background: #fff; color: #47534f; font-size: 0.86rem; }
+      .gap-list strong { color: var(--ink); }
+
+      footer {
+        padding-block: 18px 34px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      @media (max-width: 760px) {
+        .masthead { padding-inline: 18px; }
+        .masthead-inner, main, footer { width: min(100% - 28px, 1120px); }
+        .summary-grid { grid-template-columns: 1fr; }
+        .summary-card { min-height: 0; }
+        .section-heading { display: block; }
+        .section-heading p { margin-top: 8px; }
+        .criteria-grid, .gap-list { grid-template-columns: 1fr; }
+        table, tbody, tr, td { display: block; width: 100%; }
+        thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+        tbody tr { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+        tbody tr:last-child { border-bottom: 0; }
+        td { min-width: 0 !important; padding: 5px 0; border: 0; }
+        td:first-child { width: auto; }
+        td:nth-child(2)::before { content: "What it does: "; color: var(--muted); font-weight: 700; }
+        td:last-child::before { content: "Status: "; color: var(--muted); font-weight: 700; }
+      }
+
+      @media print {
+        body { background: #fff; }
+        .masthead { padding: 22px 0; background: #fff; color: var(--ink); border-bottom: 2px solid var(--green); }
+        .eyebrow, .lede, .meta-chip { color: var(--muted); }
+        .meta-chip { border-color: var(--line); }
+        main, footer, .masthead-inner { width: 100%; }
+        .summary-card, .table-wrap, details { box-shadow: none; }
+        details { break-inside: avoid; }
+        details:not([open]) > :not(summary) { display: block; }
+        a { color: inherit; text-decoration: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="masthead-inner">
+        <p class="eyebrow">Product reverse engineering / 14 October 2026</p>
+        <h1>CraftCV product audit</h1>
+        <p class="lede">A code-grounded inventory of the website's user-facing features, expected behavior, and gaps between the workspace and the deployed site.</p>
+        <div class="audit-meta" aria-label="Audit scope">
+          <span class="meta-chip">Workspace source reviewed</span>
+          <span class="meta-chip">Public Vercel pages inspected</span>
+          <span class="meta-chip">Non-payment source fixes completed</span>
+          <span class="meta-chip">Protected flows not live-tested</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <aside class="notice" aria-label="Deployment mismatch">
+        <div>
+          <strong>Production release is blocked by the backend host.</strong>
+            <p>The live <code>craftcv-eight.vercel.app/login</code> screen still asks for email and password, while current workspace source uses email magic links. Its same-origin auth check returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>), and the existing backend hostname found in the separate protected Vercel project did not resolve. The public <code>craftcv</code> Vercel project has no environment variables. The unrelated protected <code>webapp</code> production alias was restored to its previous deployment; the public CraftCV project was not changed.</p>
+        </div>
+      </aside>
+
+      <section class="summary-grid" aria-label="Audit summary">
+        <article class="summary-card">
+          <span class="label">Product shape</span>
+          <strong>Resume tailoring workspace</strong>
+          <p>Manage resumes, adapt content to job ads, create cover letters, and export through browser print.</p>
+        </article>
+        <article class="summary-card">
+          <span class="label">Commercial readiness</span>
+          <strong>Billing is simulated</strong>
+          <p>Plan actions create subscription records; no payment provider or entitlement gate is wired.</p>
+        </article>
+        <article class="summary-card">
+          <span class="label">Audit boundary</span>
+          <strong>Public plus source review</strong>
+          <p>Protected account workflows were assessed from code because no account session was available in the live site.</p>
+        </article>
+      </section>
+
+      <section aria-labelledby="inventory-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Feature map</p>
+            <h2 id="inventory-title">What the product can do</h2>
+          </div>
+          <p>Status labels distinguish visible production behavior from source-level functionality and unfinished areas.</p>
+        </div>
+
+        <div class="legend" aria-label="Status legend">
+          <span class="tag live">LIVE-OBSERVED</span>
+          <span class="tag source">SOURCE-IMPLEMENTED</span>
+          <span class="tag mock">MOCK</span>
+          <span class="tag placeholder">PLACEHOLDER</span>
+          <span class="tag mismatch">DEPLOYMENT MISMATCH</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Feature area</th><th scope="col">Current behavior</th><th scope="col">Evidence / status</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Public landing page</td>
+                <td>Introduces AI CV tailoring, job matching, 10 templates, PDF export, tone control, and three plan prices. Features and pricing are in-page sections. Hero, sign-in, and plan calls to action still go to <code>/login</code>. Privacy and Terms now open dedicated informational pages; payment actions remain deferred.</td>
+                <td><span class="tag live">LIVE-OBSERVED</span> <span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>webapp/src/pages/LandingPage.tsx</code>, <code>LegalPages.tsx</code></span></td>
+              </tr>
+              <tr>
+                <td>Sign-in and registration</td>
+                <td>Workspace login and registration both request an email magic link. A confirmation state follows a successful request. The verification page consumes a one-time token, stores the bearer session, and routes to the dashboard. New addresses can create an account after verification.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span> <span class="tag mismatch">DEPLOYMENT MISMATCH</span><span class="source-note">Live login is still password-based and live auth API currently returns 502. <code>LoginPage.tsx</code>, <code>RegisterPage.tsx</code>, <code>MagicLinkVerifyPage.tsx</code>, <code>backend/src/auth.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>Dashboard</td>
+                <td>Shows the signed-in user's resumes and cover letters, ordered by most recently updated. Users can create, open, duplicate, and delete resumes; cover-letter cards now have an Open and edit action as well as delete.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>DashboardPage.tsx</code>, <code>backend/src/routes/resumes.ts</code>, <code>backend/src/routes/coverLetters.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>Resume editor</td>
+                <td>Edits personal details, summary, work experience, education, skills, and certifications. Experience and education entries can be added, changed, and removed. Changes update the preview and autosave after about two seconds. Resume title saves on blur; Enter commits, Escape reverts, and a blank title becomes "Untitled Resume".</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>BuilderPage.tsx</code>, builder editors, <code>backend/src/routes/resumes.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>Templates and tone</td>
+                <td>Offers 10 resume templates and five tones: Professional, Confident, Human, Creative, and Personal. Template and tone choices persist with the resume and update the preview.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>webapp/src/lib/templates.ts</code>, <code>ToneSelector.tsx</code></span></td>
+              </tr>
+              <tr>
+                <td>Job matching and AI tailoring</td>
+                <td>Accepts pasted job text or a URL, extracts job information and keywords, and stores the parsed ad. Tailored CV generation uses the saved baseline profile when available, otherwise the current resume, then updates that resume in place. There is no numeric match score.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>JobMatchPanel.tsx</code>, <code>backend/src/routes/jobAd.ts</code>, <code>backend/src/routes/generate.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>Cover letters</td>
+                <td>Generates a letter from the job/resume context, creates a saved letter, and provides a rich-text editor with formatting, links, alignment, undo/redo, and AI actions for selected text. Draft text autosaves after about 1.5 seconds. Dashboard letters can be opened and explicitly saved in a standalone editor. Rewrite failures now show a toast. Generated letters can be included in print output.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>CoverLetterPanel.tsx</code>, <code>CoverLetterEditor.tsx</code>, <code>backend/src/routes/coverLetters.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>Profile import</td>
+                <td>The import panel accepts PDF, DOCX, and TXT, extracts and structures the text with AI, saves it as a baseline profile, and applies the content to the open resume. This is file upload, not LinkedIn account integration.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>LinkedInImport.tsx</code>, <code>backend/src/routes/profile.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>PDF export</td>
+                <td>Opens a browser print window and lets the user print/save as PDF, with an option to include a cover letter. It is not a direct file download. The fixed-height/overflow clipping rule has been removed so long resume content can flow across printed pages; an authenticated PDF print check remains outstanding.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>BuilderPage.tsx</code>, <code>ResumePreview.tsx</code></span></td>
+              </tr>
+              <tr>
+                <td>Pricing and subscriptions</td>
+                <td>Landing advertises Trial EUR 2.90 one-time then EUR 27.95 every four weeks, Monthly EUR 27.95 every four weeks, and Annual EUR 94.80/year. Starting a plan records an active subscription; cancellation changes its status. No payment is collected and no plan entitlement gates features. Backend trial duration is 14 days, not the landing's 7 days.</td>
+                <td><span class="tag mock">MOCK</span> <span class="tag mismatch">COPY MISMATCH</span><span class="source-note"><code>BillingPage.tsx</code>, <code>backend/src/routes/subscription.ts</code>, <code>LandingPage.tsx</code></span></td>
+              </tr>
+              <tr>
+                <td>Settings and account</td>
+                <td>Displays account name and email, links to billing, and signs out by clearing the local bearer token and calling Better Auth sign-out. Account deletion now requires typing <code>DELETE</code>, removes the current user and cascading product records, clears pending magic links, then signs out.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>SettingsPage.tsx</code>, <code>backend/src/routes/account.ts</code></span></td>
+              </tr>
+              <tr>
+                <td>Privacy and Terms</td>
+                <td>Footer links open first-party pages describing stored account/document data, AI and email processing, browser token storage, user content responsibilities, generated-output review, and account deletion.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>LegalPages.tsx</code>; legal wording still merits owner/legal review.</span></td>
+              </tr>
+              <tr>
+                <td>Production API availability</td>
+                <td>The live same-origin Better Auth session endpoint returned HTTP 502 with <code>DNS_HOSTNAME_NOT_FOUND</code>. The separate protected webapp build referenced a backend hostname that failed DNS resolution; the public CraftCV project has no backend environment configured.</td>
+                <td><span class="tag live">LIVE-OBSERVED</span> <span class="tag mismatch">DEPLOYMENT BLOCKER</span><span class="source-note">Observed on <code>craftcv-eight.vercel.app</code> on 2026-10-14.</span></td>
+              </tr>
+              <tr>
+                <td>AI and persistence services</td>
+                <td>AI operations are configured for OpenAI or Ollama. User resumes, letters, profiles, job ads, and subscription records persist through Prisma-backed APIs; protected API routes require authentication.</td>
+                <td><span class="tag source">SOURCE-IMPLEMENTED</span><span class="source-note"><code>backend/src/ai.ts</code>, <code>backend/src/routes/</code>, <code>backend/src/middleware/auth.ts</code></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section aria-labelledby="criteria-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Reverse-engineered behavior</p>
+            <h2 id="criteria-title">Acceptance criteria</h2>
+          </div>
+          <p>These criteria describe the current intended source behavior. Production verification is still required for account-only flows and the new auth deployment.</p>
+        </div>
+
+        <div class="criteria-grid">
+          <details open>
+            <summary>Public site and account access</summary>
+            <ul>
+              <li><strong>AC-01:</strong> Landing navigation moves to the Features and Pricing sections; all primary calls to action route to sign-in.</li>
+              <li><strong>AC-02:</strong> A visitor can submit an email from sign-in or registration and sees a confirmation naming the recipient when the request succeeds.</li>
+              <li><strong>AC-03:</strong> A valid, unused magic link verifies the email, creates a new account when needed, stores a bearer token, and opens the dashboard.</li>
+              <li><strong>AC-04:</strong> Missing, invalid, or expired verification tokens show an error and a route back to sign-in; links expire after 10 minutes.</li>
+              <li><strong>AC-05:</strong> Dashboard, builder, billing, and settings redirect unauthenticated users to sign-in; sign-out clears the local token.</li>
+            </ul>
+          </details>
+
+          <details open>
+            <summary>Dashboard and resume lifecycle</summary>
+            <ul>
+              <li><strong>AC-06:</strong> Dashboard lists only the current user's resumes and cover letters, sorted by latest update.</li>
+              <li><strong>AC-07:</strong> Creating a resume persists an empty Classic resume titled "Untitled Resume" and opens its builder.</li>
+              <li><strong>AC-08:</strong> Duplicating creates a separate copy with the original content/template/tone and a "(Copy)" title; deleting removes the selected resume.</li>
+              <li><strong>AC-09:</strong> Personal details, summary, experience, education, skills, and certifications update the preview and persist after the autosave delay.</li>
+              <li><strong>AC-10:</strong> Rename commits on blur or Enter, reverts on Escape, and substitutes "Untitled Resume" for a blank title.</li>
+              <li><strong>AC-11:</strong> Selecting any available template or tone updates the preview and persists the selection.</li>
+            </ul>
+          </details>
+
+          <details open>
+            <summary>Job matching and generated content</summary>
+            <ul>
+              <li><strong>AC-12:</strong> A user can submit pasted job text or a URL; successful parsing returns job details and keywords and stores the source ad.</li>
+              <li><strong>AC-13:</strong> Tailored CV generation uses the baseline profile when present, otherwise the current resume, and saves the tailored result to the current resume.</li>
+              <li><strong>AC-14:</strong> Cover-letter generation creates a saved letter associated with the current resume and displays a preview.</li>
+              <li><strong>AC-15:</strong> Editing a letter supports rich text and debounced persistence; selected text can be rewritten with preset or custom instructions.</li>
+              <li><strong>AC-16:</strong> Letter list cards support opening/editing and deletion; saving updates the existing user-owned letter.</li>
+            </ul>
+          </details>
+
+          <details open>
+            <summary>Import and export</summary>
+            <ul>
+              <li><strong>AC-17:</strong> Uploading a PDF, DOCX, or TXT file from the builder extracts profile data, persists a baseline profile, applies it to the current resume, and shows errors on failed parsing.</li>
+              <li><strong>AC-18:</strong> Export opens the browser print dialog, and the user can choose whether to append the cover letter.</li>
+              <li><strong>AC-19:</strong> Long resume content flows onto additional printed pages without being hidden by a fixed-height wrapper; an included cover letter begins after the resume.</li>
+            </ul>
+          </details>
+
+          <details open>
+            <summary>Billing and account settings</summary>
+            <ul>
+              <li><strong>AC-20:</strong> Selecting a billing plan records an active subscription and displays resulting status/date information without processing a payment.</li>
+              <li><strong>AC-21:</strong> Cancel changes the subscription status; fetching status updates expired records. No app feature is gated by plan entitlement.</li>
+              <li><strong>AC-22:</strong> Settings displays the authenticated account name/email and provides billing navigation and sign-out.</li>
+              <li><strong>AC-23:</strong> Account deletion requires exact typed confirmation, deletes the current account and related product rows in a transaction, removes outstanding magic links, clears the local bearer token, and redirects to sign-in.</li>
+            </ul>
+          </details>
+
+          <details open>
+            <summary>Service and failure behavior</summary>
+            <ul>
+              <li><strong>AC-24:</strong> App API success responses are returned in the <code>{ data: ... }</code> envelope; errors expose message/code fields. Better Auth endpoints are an exception.</li>
+              <li><strong>AC-25:</strong> AI parsing/generation requires a functioning configured OpenAI or Ollama service; failures should not be interpreted as successful saved output.</li>
+              <li><strong>AC-26:</strong> Production email delivery requires a valid Resend API key and authorized sender; the live API health/auth mismatch must be resolved before the Vercel frontend deployment is considered complete.</li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <section aria-labelledby="gaps-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Known gaps</p>
+            <h2 id="gaps-title">Deferred work and deployment blockers</h2>
+          </div>
+          <p>These are the clearest differences between advertised behavior and the current implementation.</p>
+        </div>
+        <ul class="gap-list">
+          <li><strong>Auth deployment:</strong> Live login remains email/password; workspace source uses magic links.</li>
+          <li><strong>Trial terms:</strong> Landing says 7 days; backend creates a 14-day trial. Payment is not connected.</li>
+          <li><strong>Checkout:</strong> Pricing CTAs navigate to login and do not create a checkout session.</li>
+          <li><strong>Entitlements:</strong> Subscription status does not restrict resume limits or paid functionality.</li>
+          <li><strong>Backend deploy:</strong> Account deletion and magic-link changes are in workspace source but need deployment to a backend host. Render is authenticated but shows the new-service onboarding flow; no existing service is available to update.</li>
+          <li><strong>Production API:</strong> The live auth session path returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>); the currently referenced backend hostname also fails DNS resolution.</li>
+          <li><strong>Public project configuration:</strong> The public <code>craftcv</code> Vercel project has no environment variables. Configure the correct backend URL there only after a healthy backend host is available.</li>
+          <li><strong>Auth cutover:</strong> The live site still shows password login; backend and public CraftCV frontend must be released together and tested with a real email link. The protected <code>webapp</code> project remains on its previous production deployment.</li>
+          <li><strong>Payment work deferred:</strong> Real checkout, payment-provider integration, subscription entitlements, trial/pricing copy alignment, and renewal/cancellation payment handling remain intentionally untouched until a payment account is configured.</li>
+          <li><strong>PDF verification:</strong> Print CSS now permits page flow, but a long-resume PDF and cover-letter page-break check still requires a live authenticated session.</li>
+          <li><strong>Legal review:</strong> Privacy and Terms routes are implemented with behavior-grounded copy; an owner/legal review is still advisable before treating them as final legal advice.</li>
+          <li><strong>AI service dependency:</strong> Job parsing, tailoring, letter writing, rewrite, and document parsing need a configured and reachable model provider.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      Audit basis: workspace frontend/backend source plus public Vercel landing, pricing, login, auth API health, and deployment dashboards observed on 2026-10-14. Local checks pass for the changed code, but no live account was used. Public production deployment is blocked pending a healthy backend host; payment tasks are intentionally deferred. This document distinguishes source implementation from deployed behavior.
+    </footer>
+  </body>
+</html>

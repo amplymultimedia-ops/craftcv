@@ -10,6 +10,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
   AlignCenter,
   AlignLeft,
@@ -150,8 +151,8 @@ export function CoverLetterEditor({
         .focus()
         .insertContentAt(selectedRange, result.text)
         .run();
-    } catch {
-      // silently fail — bubble menu will close
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to rewrite selected text");
     } finally {
       setAiLoading(false);
       setCustomInstruction("");

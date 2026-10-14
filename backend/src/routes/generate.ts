@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
 import { prisma } from "../db";
 import { requireAuth } from "../middleware/auth";
 import type { HonoVariables } from "../context";
@@ -7,7 +6,6 @@ import {
   GenerateResumeSchema,
   GenerateCoverLetterSchema,
   EditTextSchema,
-  type EditText,
   type ResumeContent,
   type ToneOfVoice,
 } from "../types";
@@ -373,16 +371,26 @@ generateRouter.post("/cover-letter", async (c) => {
 });
 
 // POST /api/generate/edit-text - Edit text according to an instruction
-generateRouter.post(
-  "/edit-text",
-  zValidator("json", EditTextSchema),
-  async (c) => {
-    const { text, instruction } = c.req.valid("json" as never) as EditText;
-    const aiConfig = getAiConfig(process.env as any);
-    if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
-      return c.json({ error: { message: "OpenAI API key not configured", code: "NO_API_KEY" } }, 500);
-    }
+generateRouter.post("/edit-text", async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const parsed = EditTextSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json(
+      { error: { message: "Text and instruction are required", code: "VALIDATION_ERROR" } },
+      400
+    );
+  }
 
+  const { text, instruction } = parsed.data;
+  const aiConfig = getAiConfig(process.env as any);
+  if (aiConfig.provider === "openai" && !aiConfig.apiKey) {
+    return c.json(
+      { error: { message: "AI service is not configured", code: "AI_NOT_CONFIGURED" } },
+      500
+    );
+  }
+
+  try {
     const { default: OpenAI } = await import("openai");
     const openai = new OpenAI({
       apiKey: aiConfig.apiKey,
@@ -404,9 +412,16 @@ generateRouter.post(
       temperature: 0.7,
     });
 
-    const edited = completion.choices[0]?.message?.content?.trim() ?? text;
+    const edited = completion.choices[0]?.message?.content?.trim();
+    if (!edited) throw new Error("AI provider returned an empty response");
     return c.json({ data: { text: edited } });
+  } catch (error) {
+    console.error("Text rewrite error:", error);
+    return c.json(
+      { error: { message: "Unable to rewrite text right now", code: "GENERATION_ERROR" } },
+      502
+    );
   }
-);
+});
 
 export { generateRouter };

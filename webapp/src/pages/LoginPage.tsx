@@ -4,69 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, ArrowRight } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { tokenStore } from "@/lib/session";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [sentTo, setSentTo] = useState("");
 
-  const callbackURL = new URL("/dashboard", window.location.origin).toString();
+  const callbackURL = new URL("/auth/verify", window.location.origin).toString();
 
-  async function handleSignIn() {
-    if (!email || !password) return;
+  async function handleSendLink() {
+    if (!email) return;
     setLoading(true);
     try {
-      const { data, error } = await authClient.signIn.email({
+      const { error } = await authClient.signIn.magicLink({
         email,
-        password,
         callbackURL,
       });
       if (error) {
-        toast.error("Invalid email or password");
+        toast.error(error.message ?? "Unable to send sign-in link");
         return;
       }
-      if (data?.token) tokenStore.set(data.token);
-      window.location.href = "/dashboard";
+      setSentTo(email);
     } catch {
-      toast.error("Invalid email or password");
+      toast.error("Unable to send sign-in link. Please try again.");
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function handlePasswordRecovery() {
-    if (!email) {
-      toast.error("Enter your email address first");
-      return;
-    }
-
-    setIsResettingPassword(true);
-    try {
-      const response = await fetch("/api/auth/request-password-reset", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          redirectTo: `${window.location.origin}/reset-password`,
-        }),
-      });
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        toast.error(data?.error?.message || "Unable to send password reset email");
-        return;
-      }
-
-      toast.success("Password reset link sent. Check your inbox.");
-    } catch {
-      toast.error("Unable to send password reset email");
-    } finally {
-      setIsResettingPassword(false);
     }
   }
 
@@ -95,62 +59,48 @@ export default function LoginPage() {
               <Mail className="w-5 h-5 text-primary" />
             </div>
             <h1 className="font-display text-3xl font-semibold mb-2">Sign in</h1>
-            <p className="text-muted-foreground text-sm">Enter your email and password to continue.</p>
+            <p className="text-muted-foreground text-sm">We'll email you a secure link to sign in.</p>
           </div>
 
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
-              <div className="relative mt-1.5">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSignIn()}
-                  className="pl-9"
-                  autoFocus
-                />
+            {sentTo ? (
+              <div className="rounded-md border border-border bg-card p-4 text-sm" role="status">
+                <p className="font-medium">Check your inbox</p>
+                <p className="mt-1 text-muted-foreground">We sent a sign-in link to {sentTo}.</p>
+                <button
+                  type="button"
+                  onClick={() => setSentTo("")}
+                  className="mt-3 text-foreground underline underline-offset-2"
+                >
+                  Use a different email
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+                  <div className="relative mt-1.5">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && handleSendLink()}
+                      className="pl-9"
+                      autoComplete="email"
+                      autoFocus
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-              <div className="relative mt-1.5">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && handleSignIn()}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleSignIn}
-              disabled={loading || !email || !password}
-              className="w-full"
-            >
-              {loading ? "Signing in…" : "Sign in"}
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={handlePasswordRecovery}
-                disabled={isResettingPassword || !email}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-              >
-                {isResettingPassword ? "Sending…" : "Forgot password?"}
-              </button>
-            </div>
+                <Button onClick={handleSendLink} disabled={loading || !email} className="w-full">
+                  {loading ? "Sending link…" : "Email me a sign-in link"}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
 
           <p className="text-center text-xs text-muted-foreground mt-8">

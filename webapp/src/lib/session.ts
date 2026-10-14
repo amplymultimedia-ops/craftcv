@@ -1,3 +1,5 @@
+import { backendBaseURL } from "@/lib/backend-url";
+
 const KEY = "auth_token";
 
 export const tokenStore = {
@@ -10,7 +12,7 @@ export async function fetchSession() {
   const token = tokenStore.get();
   if (!token) return null;
   try {
-    const res = await fetch("/api/auth/get-session", {
+    const res = await fetch(`${backendBaseURL}/api/auth/get-session`, {
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
     });
@@ -28,7 +30,7 @@ export async function fetchSession() {
 export async function clearSession() {
   tokenStore.clear();
   try {
-    await fetch("/api/auth/sign-out", { method: "POST", credentials: "include" });
+    await fetch(`${backendBaseURL}/api/auth/sign-out`, { method: "POST", credentials: "include" });
   } catch (_) {
     // ignore sign-out errors
   }

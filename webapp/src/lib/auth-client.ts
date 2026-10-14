@@ -1,10 +1,10 @@
 import { createAuthClient } from "better-auth/react";
-
-const useRelativeApi =
-  typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app");
+import { magicLinkClient } from "better-auth/client/plugins";
+import { backendBaseURL } from "@/lib/backend-url";
 
 export const authClient = createAuthClient({
-  baseURL: useRelativeApi ? undefined : import.meta.env.VITE_BACKEND_URL || undefined,
+  baseURL: backendBaseURL || undefined,
+  plugins: [magicLinkClient()],
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;

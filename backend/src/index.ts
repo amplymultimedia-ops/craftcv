@@ -10,6 +10,7 @@ import { profileRouter } from "./routes/profile";
 import { jobAdRouter } from "./routes/jobAd";
 import { generateRouter } from "./routes/generate";
 import { subscriptionRouter } from "./routes/subscription";
+import { accountRouter } from "./routes/account";
 
 const app = new Hono();
 
@@ -48,6 +49,7 @@ app.route("/api/profile", profileRouter);
 app.route("/api/job-ad", jobAdRouter);
 app.route("/api/generate", generateRouter);
 app.route("/api/subscription", subscriptionRouter);
+app.route("/api/account", accountRouter);
 
 const port = Number(process.env.PORT) || 3000;
 

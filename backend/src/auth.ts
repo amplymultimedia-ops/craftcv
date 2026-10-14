@@ -1,9 +1,9 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { bearer } from "better-auth/plugins";
+import { bearer, magicLink } from "better-auth/plugins";
 import { prisma } from "./db";
 import { env } from "./env";
-import { sendOtpEmail } from "./mailer";
+import { sendMagicLinkEmail } from "./mailer";
 
 export const auth = betterAuth({
   baseURL: env.BACKEND_URL,
@@ -27,17 +27,23 @@ export const auth = betterAuth({
     crossSubDomainCookies: { enabled: false },
     trustedProxyHeaders: true,
   },
-  emailAndPassword: {
-    enabled: true,
-    sendResetPassword: async ({ user, url }) => {
-      try {
-        await sendOtpEmail(user.email, url.split("/").pop() || "reset-link");
-      } catch (error) {
-        console.error("Failed to send reset password email", error);
-      }
-    },
-  },
-  plugins: [bearer()],
+  plugins: [
+    bearer(),
+    magicLink({
+      expiresIn: 10 * 60,
+      sendMagicLink: async ({ email, token, url }) => {
+        const verificationURL = new URL(url);
+        const callbackURL = verificationURL.searchParams.get("callbackURL");
+        if (!callbackURL) {
+          throw new Error("Magic link is missing its verification callback URL");
+        }
+
+        const signInURL = new URL(callbackURL);
+        signInURL.searchParams.set("token", token);
+        await sendMagicLinkEmail(email, signInURL.toString());
+      },
+    }),
+  ],
 });
 
 export type Auth = typeof auth;

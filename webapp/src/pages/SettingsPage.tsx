@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/layout/Navbar";
 import { fetchSession, clearSession, tokenStore } from "@/lib/session";
+import { api } from "@/lib/api";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
@@ -13,71 +15,19 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchSession().then(setSession);
   }, []);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      toast.error("Please fill in all password fields");
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    setIsChangingPassword(true);
-
-    try {
-      const token = tokenStore.get();
-      const response = await fetch("/api/auth/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-          revokeOtherSessions: true,
-        }),
-      });
-
-      const data = await response.json().catch(() => null);
-
-      if (!response.ok) {
-        toast.error(data?.error?.message || "Unable to change password right now");
-        return;
-      }
-
-      toast.success("Password updated successfully");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (error) {
-      console.error("Password change failed", error);
-      toast.error("Unable to change password right now");
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    toast.error("Account deletion coming soon. Contact support to delete your account.");
-    setShowDeleteConfirm(false);
-  };
+  const deleteAccountMutation = useMutation({
+    mutationFn: () => api.delete<void>("/api/account", {
+      body: JSON.stringify({ confirmation: deleteConfirmation }),
+    }),
+    onSuccess: () => {
+      tokenStore.clear();
+      window.location.href = "/login";
+    },
+    onError: (error: Error) => toast.error(error.message || "Unable to delete account"),
+  });
 
   const handleLogout = async () => {
     await clearSession();
@@ -113,64 +63,43 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Change Password */}
-        <section className="mb-8 p-6 bg-card border border-border rounded-lg">
-          <h2 className="font-body font-semibold text-sm text-foreground mb-4 uppercase tracking-wide">Change Password</h2>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="current">Current password</Label>
-              <Input
-                id="current"
-                type="password"
-                placeholder="••••••••"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new">New password</Label>
-              <Input
-                id="new"
-                type="password"
-                placeholder="At least 8 characters"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                minLength={8}
-                autoComplete="new-password"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="confirm">Confirm new password</Label>
-              <Input
-                id="confirm"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-            </div>
-            <Button type="submit" size="sm" disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}>
-              {isChangingPassword ? "Updating…" : "Update password"}
-            </Button>
-          </form>
-        </section>
-
         {/* Danger Zone */}
         <section className="p-6 bg-card border border-destructive/30 rounded-lg">
           <h2 className="font-body font-semibold text-sm text-destructive mb-2 uppercase tracking-wide">Danger Zone</h2>
           <p className="text-xs text-muted-foreground mb-4">
-            Permanently delete your account and all associated data. This cannot be undone.
+            Permanently delete your account, resumes, cover letters, job ads, and profile data. This cannot be undone.
           </p>
           {showDeleteConfirm ? (
-            <div className="flex items-center gap-3">
-              <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>
-                Yes, delete my account
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(false)}>
-                Cancel
-              </Button>
+            <div className="max-w-sm space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="delete-confirmation">Type DELETE to confirm</Label>
+                <Input
+                  id="delete-confirmation"
+                  value={deleteConfirmation}
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleteConfirmation !== "DELETE" || deleteAccountMutation.isPending}
+                  onClick={() => deleteAccountMutation.mutate()}
+                >
+                  {deleteAccountMutation.isPending ? "Deleting…" : "Delete account permanently"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmation("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           ) : (
             <Button

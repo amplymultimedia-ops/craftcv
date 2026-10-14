@@ -1,9 +1,5 @@
 import { tokenStore } from "@/lib/session";
-
-const useRelativeApi =
-  typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app");
-
-const API_BASE_URL = useRelativeApi ? "" : import.meta.env.VITE_BACKEND_URL || "";
+import { backendBaseURL } from "@/lib/backend-url";
 
 class ApiError extends Error {
   constructor(message: string, public status: number, public data?: unknown) {
@@ -18,7 +14,7 @@ interface ApiResponse<T> {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${backendBaseURL}${endpoint}`;
 
   const token = tokenStore.get();
   const config: RequestInit = {
@@ -61,7 +57,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 // Raw request for non-JSON endpoints (uploads, downloads, streams)
 async function rawRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${backendBaseURL}${endpoint}`;
   const token = tokenStore.get();
   const config: RequestInit = {
     ...options,

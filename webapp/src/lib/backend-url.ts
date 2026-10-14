@@ -1,0 +1,1 @@
+export const backendBaseURL = (import.meta.env.VITE_BACKEND_URL || "").replace(/\/$/, "");

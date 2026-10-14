@@ -136,8 +136,7 @@ export default function BuilderPage() {
     html, body { margin: 0; padding: 0; background: white; }
     .print-page {
       width: 210mm;
-      height: 297mm;
-      overflow: hidden;
+      min-height: 297mm;
       page-break-after: always;
       break-after: page;
       position: relative;

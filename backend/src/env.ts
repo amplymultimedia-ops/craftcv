@@ -19,6 +19,7 @@ const envSchema = z.object({
   OLLAMA_BASE_URL: z.string().optional().default("http://localhost:11434/v1"),
   OLLAMA_MODEL: z.string().optional().default("gemma3:4b"),
   RESEND_API_KEY: z.string(),
+  RESEND_FROM_EMAIL: z.string().optional().default("CraftCV <onboarding@resend.dev>"),
 });
 
 /**

@@ -6,15 +6,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CoverLetter } from "@/lib/types";
-import { MoreHorizontal, Trash2, Mail } from "lucide-react";
+import { MoreHorizontal, Trash2, Mail, Pencil } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface CoverLetterCardProps {
   coverLetter: CoverLetter;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
-export function CoverLetterCard({ coverLetter, onDelete }: CoverLetterCardProps) {
+export function CoverLetterCard({ coverLetter, onEdit, onDelete }: CoverLetterCardProps) {
   const updatedAt = formatDistanceToNow(new Date(coverLetter.updatedAt), { addSuffix: true });
   const preview = coverLetter.content.slice(0, 120).trim();
 
@@ -47,6 +48,10 @@ export function CoverLetterCard({ coverLetter, onDelete }: CoverLetterCardProps)
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="w-3.5 h-3.5 mr-2" />
+              Open and edit
+            </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={onDelete}
