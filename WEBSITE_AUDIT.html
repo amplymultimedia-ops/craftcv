@@ -309,7 +309,7 @@
       <aside class="notice" aria-label="Deployment mismatch">
         <div>
           <strong>Production release is blocked by the backend host.</strong>
-            <p>The live <code>craftcv-eight.vercel.app/login</code> screen still asks for email and password, while current workspace source uses email magic links. Its same-origin auth check returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>), and the existing backend hostname found in the separate protected Vercel project did not resolve. The public <code>craftcv</code> Vercel project has no environment variables. The unrelated protected <code>webapp</code> production alias was restored to its previous deployment; the public CraftCV project was not changed.</p>
+            <p>The live <code>craftcv-eight.vercel.app/login</code> screen still asks for email and password, while current workspace source uses email magic links. Its same-origin auth check returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>), and the existing backend hostname found in the separate protected Vercel project did not resolve. The public <code>craftcv</code> Vercel project has no environment variables. Render's Blueprint flow currently reports a missing repository URL and HTTP 429, so no backend service was created. The unrelated protected <code>webapp</code> production alias was restored to its previous deployment; the public CraftCV project was not changed.</p>
         </div>
       </aside>
 
@@ -516,7 +516,7 @@
           <li><strong>Trial terms:</strong> Landing says 7 days; backend creates a 14-day trial. Payment is not connected.</li>
           <li><strong>Checkout:</strong> Pricing CTAs navigate to login and do not create a checkout session.</li>
           <li><strong>Entitlements:</strong> Subscription status does not restrict resume limits or paid functionality.</li>
-          <li><strong>Backend deploy:</strong> Account deletion and magic-link changes are in workspace source but need deployment to a backend host. Render is authenticated but shows the new-service onboarding flow; no existing service is available to update.</li>
+          <li><strong>Backend deploy:</strong> Account deletion and magic-link changes are committed on branch <code>release-candidate-local-ai</code>; a Render Docker/Blueprint scaffold is included. Render lists the GitHub repository but its Blueprint flow reports a missing repository URL and 429, so no service was created.</li>
           <li><strong>Production API:</strong> The live auth session path returned HTTP 502 (<code>DNS_HOSTNAME_NOT_FOUND</code>); the currently referenced backend hostname also fails DNS resolution.</li>
           <li><strong>Public project configuration:</strong> The public <code>craftcv</code> Vercel project has no environment variables. Configure the correct backend URL there only after a healthy backend host is available.</li>
           <li><strong>Auth cutover:</strong> The live site still shows password login; backend and public CraftCV frontend must be released together and tested with a real email link. The protected <code>webapp</code> project remains on its previous production deployment.</li>
