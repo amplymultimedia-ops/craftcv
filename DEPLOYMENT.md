@@ -22,7 +22,7 @@ Notes:
 
 This app frontend calls backend APIs. Deploy backend first so frontend has a live API URL.
 
-The repository includes a Render Blueprint (`render.yaml`) and Docker build for the Bun backend. The container generates both Prisma clients in Linux and does not run a schema push at startup.
+The repository includes a Render Blueprint (`render.yaml`) pinned to `release-candidate-local-ai` and a Docker build for the Bun backend. The container generates both Prisma clients in Linux and does not run a schema push at startup.
 
 1. In Render, create a Blueprint Instance from this repository and select `render.yaml`.
 2. Set the prompted secrets: `SUPABASE_DATABASE_URL`, `OPENAI_API_KEY`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` using a sender verified by Resend.
